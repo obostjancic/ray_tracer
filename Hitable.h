@@ -7,16 +7,15 @@
 
 #include "Ray.h"
 
-struct hit_record
-{
+struct hit_record {
     float t;
     Vector3D p;
     Vector3D normal;
 };
 
-class Hitable  {
+class Hitable {
 public:
-    virtual bool hit(const Ray& ray, float t_min, float t_max, hit_record& rec) const = 0;
+    virtual bool hit(const Ray &ray, float t_min, float t_max, hit_record &rec) const = 0;
 };
 
 #endif //RAY_TRACER_HITABLE_H

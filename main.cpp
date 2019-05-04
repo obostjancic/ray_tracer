@@ -22,7 +22,7 @@ using namespace std;
 //        return (-b - sqrt(discriminant)) / (2.0 * a);
 //}
 
-Vector3D color(const Ray& ray, Hitable *world) {
+Vector3D color(const Ray &ray, Hitable *world) {
     hit_record record;
     float MAXFLOAT = numeric_limits<float>::max();
     if (world->hit(ray, 0.0, MAXFLOAT, record)) {
