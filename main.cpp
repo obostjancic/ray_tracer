@@ -5,31 +5,29 @@
 #include "Ray.h"
 #include "Hitable.h"
 #include "Sphere.h"
+#include "Camera.h"
 #include "HitableList.h"
-
+#include "Material.h"
+#include "Util.h"
+#include "Ellipsoid.h"
+#include "Parser.h"
 using namespace std;
 
-//float hit_sphere(const Vector3D& center, float radius, const Ray& ray) {
-//    Vector3D oc = ray.origin() - center;
-//    float a = dot(ray.direction(), ray.direction());
-//    float b = 2.0 * dot(oc, ray.direction());
-//    float c = dot(oc, oc) - radius * radius;
-//    float discriminant = b * b - 4 * a * c;
-//
-//    if (discriminant < 0)
-//        return -1.0;
-//    else
-//        return (-b - sqrt(discriminant)) / (2.0 * a);
-//}
 
-Vector3D color(const Ray &ray, Hitable *world) {
+Vector3D color(const Ray &ray, Hitable *world, int depth) {
     hit_record record;
-    float MAXFLOAT = numeric_limits<float>::max();
-    if (world->hit(ray, 0.0, MAXFLOAT, record)) {
-        return 0.5 * Vector3D(record.normal.x() + 1, record.normal.y() + 1, record.normal.z() + 1);
+    double MAXFLOAT = numeric_limits<double>::max();
+    if (world->hit(ray, 0.001, MAXFLOAT, record)) {
+        Ray scattered;
+        Vector3D attenuation;
+        if (depth < 50 && record.mat_ptr->scatter(ray, record, attenuation, scattered)) {
+            return attenuation * color(scattered, world, depth + 1);
+        } else {
+            return Vector3D(0, 0, 0);
+        }
     } else {
         Vector3D unit_direction = unit_vector(ray.direction());
-        float t = 0.5 * (unit_direction.y() + 1.0);
+        double t = 0.5 * (unit_direction.y() + 1.0);
         return (1.0 - t) * Vector3D(1.0, 1.0, 1.0) + t * Vector3D(0.5, 0.7, 1.0);
     }
 }
@@ -39,29 +37,26 @@ int main() {
     ofstream fout;
     fout.open("out.ppm");
 
-    int nx = 800, ny = 400;
+    int nx, ny, ns;
+    Camera cam;
+    Hitable *world = parse_scene("scene.txt", nx, ny, ns, cam);
+
     fout << "P3\n" << nx << " " << ny << "\n255\n";
 
-    Vector3D lower_left_corner(-2.0, -1.0, -1.0);
-    Vector3D horizontal(4.0, 0.0, 0.0);
-    Vector3D vertical(0.0, 2.0, 0.0);
-    Vector3D origin(0.0, 0.0, 0.0);
-
-    Hitable *list[2];
-    list[0] = new Sphere(Vector3D(0, 0, -1), 0.5);
-    list[1] = new Sphere(Vector3D(0, -100.5, -1), 100);
-
-    Hitable *world = new HitableList(list, 2);
     for (int j = ny - 1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
+            Vector3D col(0.0, 0.0, 0.0);
+            for (int s = 0; s < ns; s++) {
+                double u = (i + random()) / double(nx);
+                double v = (j + random()) / double(ny);
 
-            float u = float(i) / float(nx);
-            float v = float(j) / float(ny);
+                Ray ray = cam.get_ray(u, v);
+                Vector3D p = ray.point_at_parameter(2.0);
+                col += color(ray, world, 0);
+            }
 
-            Ray ray(origin, lower_left_corner + u * horizontal + v * vertical);
-            Vector3D p = ray.point_at_parameter(2.0);
-            Vector3D col = color(ray, world);
-
+            col /= double(ns);
+            col = Vector3D(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
             int ir = int(255.99 * col[0]);
             int ig = int(255.99 * col[1]);
             int ib = int(255.99 * col[2]);

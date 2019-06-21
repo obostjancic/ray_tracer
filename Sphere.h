@@ -11,26 +11,28 @@ class Sphere : public Hitable {
 public:
     Sphere() {}
 
-    Sphere(Vector3D center, float radius) : center(center), radius(radius) {};
+    Sphere(Vector3D center, double radius, Material *material) : center(center), radius(radius), mat_ptr(material) {};
 
-    virtual bool hit(const Ray &ray, float t_min, float t_max, hit_record &rec) const;
+    virtual bool hit(const Ray &ray, double t_min, double t_max, hit_record &rec) const;
 
     Vector3D center;
-    float radius;
+    double radius;
+    Material *mat_ptr;
 };
 
-bool Sphere::hit(const Ray &ray, float t_min, float t_max, hit_record &record) const {
+bool Sphere::hit(const Ray &ray, double t_min, double t_max, hit_record &record) const {
     Vector3D oc = ray.origin() - center;
-    float a = dot(ray.direction(), ray.direction());
-    float b = dot(oc, ray.direction());
-    float c = dot(oc, oc) - radius * radius;
-    float discriminant = b * b - a * c;
+    double a = dot(ray.direction(), ray.direction());
+    double b = dot(oc, ray.direction());
+    double c = dot(oc, oc) - radius * radius;
+    double discriminant = b * b - a * c;
     if (discriminant > 0) {
-        float temp = (-b - sqrt(discriminant)) / a;
+        double temp = (-b - sqrt(discriminant)) / a;
         if (temp < t_max && temp > t_min) {
             record.t = temp;
             record.p = ray.point_at_parameter(record.t);
             record.normal = (record.p - center) / radius;
+            record.mat_ptr = mat_ptr;
             return true;
         }
         temp = (-b + sqrt(discriminant)) / a;
@@ -38,6 +40,7 @@ bool Sphere::hit(const Ray &ray, float t_min, float t_max, hit_record &record) c
             record.t = temp;
             record.p = ray.point_at_parameter(record.t);
             record.normal = (record.p - center) / radius;
+            record.mat_ptr = mat_ptr;
             return true;
         }
     }

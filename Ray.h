@@ -20,10 +20,11 @@ public:
 
     Vector3D direction() const { return B; }
 
-    Vector3D point_at_parameter(float t) const { return A + t * B; }
+    Vector3D point_at_parameter(double t) const { return A + t * B; }
 
     Vector3D A;
     Vector3D B;
 };
+
 
 #endif //RAY_TRACER_RAY_H

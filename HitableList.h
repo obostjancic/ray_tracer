@@ -16,21 +16,21 @@ public:
         list_size = n;
     }
 
-    virtual bool hit(const Ray &ray, float t_min, float t_max, hit_record &record) const;
+    virtual bool hit(const Ray &ray, double t_min, double t_max, hit_record &record) const;
 
     Hitable **list;
     int list_size;
 };
 
-bool HitableList::hit(const Ray &ray, float t_min, float t_max, hit_record &record) const {
-    hit_record temp_rec;
+bool HitableList::hit(const Ray &ray, double t_min, double t_max, hit_record &record) const {
+    hit_record current_record;
     bool hit_anything = false;
     double closest_so_far = t_max;
     for (int i = 0; i < list_size; i++) {
-        if (list[i]->hit(ray, t_min, closest_so_far, temp_rec)) {
+        if (list[i]->hit(ray, t_min, closest_so_far, current_record)) {
             hit_anything = true;
-            closest_so_far = temp_rec.t;
-            record = temp_rec;
+            closest_so_far = current_record.t;
+            record = current_record;
         }
     }
     return hit_anything;
